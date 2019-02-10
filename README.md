@@ -29,6 +29,7 @@ setInterval(() => {
 ```
 
 ```javascript
+/* client.js */
 const { Client } = require('network-events');
 
 const client = new Client({ port: 5000, host: 'localhost' });
