@@ -41,7 +41,7 @@ Every 5 seconds, the server will increment `count` and emit the result to all
 connected clients.
 
 ### With Encryption
-Here's a simple client/server example:
+You can also encrypt traffic using a secret key.
 
 ```javascript
 /* server.js */
@@ -63,6 +63,3 @@ const { Client } = require('network-events');
 const client = new Client({ port: 5000, host: 'localhost', key: 'somesupersecretkey' });
 client.on('count', (data) => console.log(data.count));
 ```
-
-Every 5 seconds, the server will increment `count` and emit the result to all
-connected clients.
