@@ -4,7 +4,7 @@ A dependency-free, light-weight event system using NodeJS's `net`,
 `events`, and `crypto` libraries.
 
 **NOTE**: Not all builds of NodeJS ship with `crypto`, but most do. If you
-installed NodeJS through something like `nvm`, you're probably fine.
+installed NodeJS through something like `nvm`, you're probably fine. 
 
 ## Installation
 
