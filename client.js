@@ -1,22 +1,25 @@
 const net = require('net');
 const EventEmitter = require('events');
+const { encrypt, decrypt } = require('./crypt');
 
-module.exports = class Client {
-  constructor({ port, host }) {
+module.exports = class Client extends EventEmitter {
+  constructor({ port, host, key }) {
+    super();
     this.port = port;
     this.host = host;
-    this.emitter = new EventEmitter();
+    this.key = key ? Buffer.from(key.padStart(32)).slice(0, 32) : null;
     this.connection = net.createConnection(this.port, this.host, (c) => {
       console.log('connected to server');
     });
-    this.connection.setEncoding('utf8');
     this.connection.on('data', (data) => {
-      const payload = data.split('\n');
-      this.emitter.emit(payload[0], JSON.parse(payload[1]));
+      let payload;
+      if (this.key) {
+        const buffer = Buffer.from(data);
+        payload = decrypt(buffer.slice(16), this.key, buffer.slice(0, 16)).split('\n');
+      } else {
+        payload = data.toString('utf8').split('\n');
+      }
+      this.emit(payload[0], JSON.parse(payload[1]));
     });
-  }
-
-  on(event, cb) {
-    this.emitter.on(event, cb);
   }
 };
