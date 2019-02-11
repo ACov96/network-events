@@ -1,7 +1,10 @@
 # Network Events
 
-A dependency-free, light-weight event system using NodeJS's `net` and 
-`events` libraries.
+A dependency-free, light-weight event system using NodeJS's `net`, 
+`events`, and `crypto** libraries.
+
+**NOTE**: Not all builds of NodeJS ship with `crypto`, but most do. If you
+installed NodeJS through something like `nvm`, you're probably fine.
 
 ## Installation
 
@@ -63,3 +66,12 @@ const { Client } = require('network-events');
 const client = new Client({ port: 5000, host: 'localhost', key: 'somesupersecretkey' });
 client.on('count', (data) => console.log(data.count));
 ```
+## Documentation
+
+For more documentation, clone the repository and run:
+
+```bash
+npm run build_docs
+```
+
+This will create a `docs/` directory with detailed documentation.

@@ -2,7 +2,21 @@ const net = require('net');
 const EventEmitter = require('events');
 const { encrypt, decrypt } = require('./crypt');
 
+/**
+ * Client
+ * @class
+ * @description Client to receive events to.
+ */
 module.exports = class Client extends EventEmitter {
+  /**
+   * Constructor
+   * @constructor
+   * @param {Object} opts - Constructor options
+   * @param {Number} opts.port - Port to connect to
+   * @param {String} opts.host - Host to connect to
+   * @param {String} opts.key - Secret key to use. Will be padded/truncated
+   *                            to length 32 for encryption algorithm.
+   */
   constructor({ port, host, key }) {
     super();
     this.port = port;
