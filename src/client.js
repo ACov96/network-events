@@ -22,18 +22,19 @@ module.exports = class Client extends EventEmitter {
     this.port = port;
     this.host = host;
     this.key = key ? Buffer.from(key.padStart(32)).slice(0, 32) : null;
-    this.connection = net.createConnection(this.port, this.host, (c) => {
-      console.log('connected to server');
+    this.connection = net.createConnection(this.port, this.host, () => {
+      if (this.key) this.connection.write(encrypt(this.key, this.key));
     });
     this.connection.on('data', (data) => {
       let payload;
       if (this.key) {
-        const buffer = Buffer.from(data);
-        payload = decrypt(buffer.slice(16), this.key, buffer.slice(0, 16)).split('\n');
+        payload = decrypt(data, this.key).split('\n');
       } else {
         payload = data.toString('utf8').split('\n');
       }
       this.emit(payload[0], JSON.parse(payload[1]));
     });
+    this.connection.on('error', err => this.emit('error', err));
+    this.connection.on('close', () => this.emit('error', new Error('Connection interrupted unexpectedly')));
   }
 };

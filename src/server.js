@@ -1,6 +1,8 @@
 const net = require('net');
 const { encrypt, decrypt } = require('./crypt');
 
+const MINUTE = 1000 * 60;
+
 /**
  * Server
  * @description Server to emit events with
@@ -20,14 +22,32 @@ module.exports = class Server {
     this.key = key ? Buffer.from(key.padStart(32)).slice(0, 32) : null;
     this.connections = [];
     this.server = net.createServer((c) => {
-      this.connections.push(c);
-      c.on('end', () => {
-        this.connections = this.connections.filter(connection => connection !== c);
-      });
+      if (this.key) {
+        c.once('data', (data) => {
+          try {
+            const clientKey = decrypt(data, this.key).toString();
+            if (clientKey === this.key.toString()) {
+              console.log(`Client connected from ${c.remoteAddress}`);
+              this.connections.push(c);
+            } else c.destroy();
+          } catch (err) {
+            c.destroy();
+          }
+        });
+      } else {
+        console.log(`Client connected from ${c.remoteAddress}`);
+        this.connections.push(c);
+      }
+      c.once('end', () => console.log(`Client ${c.remoteAddress} has disconnected`));
     });
     this.server.listen(this.port, () => {
       console.log(`Listening on ${this.port}...`);
     });
+
+    // Cleanup bad connections once every minute
+    setInterval(() => {
+      this.connections = this.connections.filter(c => !c.destroyed);
+    }, MINUTE);
   }
 
   /**
@@ -44,6 +64,8 @@ module.exports = class Server {
     if (this.key) {
       payload = encrypt(payload, this.key);
     }
-    this.connections.forEach(c => c.write(payload));
+    this.connections.forEach((c) => {
+      if (!c.destroyed) c.write(payload);
+    });
   }
 };

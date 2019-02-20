@@ -30,12 +30,14 @@ module.exports = {
    * @description Decrypts the message using the key and initialization
    *              vector provided.
    * @function
-   * @param {Buffer} text - Message to decrypt.
+   * @param {Buffer} data - Message to decrypt.
    * @param {Buffer} key - Secret key to use. Must have length of 32.
-   * @param {Buffer} iv - Initialization vector to use.
    * @returns {String} Returns decrypted message.
    */
-  decrypt: (text, key, iv) => {
+  decrypt: (data, key) => {
+    const buffer = Buffer.from(data);
+    const iv = buffer.slice(0, 16);
+    const text = buffer.slice(16);
     const decipher = crypto.createDecipheriv('aes-256-cbc', (key), iv);
     let dec = decipher.update(text);
     dec = Buffer.concat([dec, decipher.final()]);
