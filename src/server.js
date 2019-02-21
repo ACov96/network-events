@@ -1,4 +1,6 @@
 const net = require('net');
+const http = require('http');
+const { parse } = require('querystring');
 const { encrypt, decrypt } = require('./crypt');
 
 const MINUTE = 1000 * 60;
@@ -17,8 +19,7 @@ module.exports = class Server {
    * @param {String} opts.key - Secret key to encrypt messages with. Will be
    *                            truncated/padded to length 32.
    */
-  constructor({ port, key }) {
-    this.port = port;
+  constructor({ clientPort, httpPort, key }) {
     this.key = key ? Buffer.from(key.padStart(32)).slice(0, 32) : null;
     this.connections = [];
     this.server = net.createServer((c) => {
@@ -35,14 +36,28 @@ module.exports = class Server {
           }
         });
       } else {
-        console.log(`Client connected from ${c.remoteAddress}`);
+        // console.log(`Client connected from ${c.remoteAddress}`);
         this.connections.push(c);
       }
       c.once('end', () => console.log(`Client ${c.remoteAddress} has disconnected`));
     });
-    this.server.listen(this.port, () => {
-      console.log(`Listening on ${this.port}...`);
+    this.httpServer = http.createServer((req, res) => {
+      const event = req.url.substring(1);
+      if (req.method === 'POST') {
+        let buffer = '';
+        req.on('data', chunk => buffer += chunk.toString());
+        req.on('end', () => {
+          this.emit({ event, data: parse(buffer) });
+          res.end();
+        });
+      } else {
+        this.emit({ event });
+        res.end();
+      }
     });
+
+    this.server.listen(clientPort, () => console.log(`Listening for clients on ${clientPort}...`));
+    this.httpServer.listen(httpPort, () => console.log(`Listening for events on ${httpPort}...`));
 
     // Cleanup bad connections once every minute
     setInterval(() => {

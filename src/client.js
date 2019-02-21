@@ -26,12 +26,7 @@ module.exports = class Client extends EventEmitter {
       if (this.key) this.connection.write(encrypt(this.key, this.key));
     });
     this.connection.on('data', (data) => {
-      let payload;
-      if (this.key) {
-        payload = decrypt(data, this.key).split('\n');
-      } else {
-        payload = data.toString('utf8').split('\n');
-      }
+      const payload = this.key ? decrypt(data, this.key).split('\n') : data.toString('utf8').split('\n');
       this.emit(payload[0], JSON.parse(payload[1]));
     });
     this.connection.on('error', err => this.emit('error', err));
