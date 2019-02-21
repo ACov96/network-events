@@ -27,7 +27,7 @@ module.exports = class Client extends EventEmitter {
     });
     this.connection.on('data', (data) => {
       const payload = this.key ? decrypt(data, this.key).split('\n') : data.toString('utf8').split('\n');
-      this.emit(payload[0], JSON.parse(payload[1]));
+      this.emit(payload[0], payload[1] ? JSON.parse(payload[1]) : null);
     });
     this.connection.on('error', err => this.emit('error', err));
     this.connection.on('close', () => this.emit('error', new Error('Connection interrupted unexpectedly')));
